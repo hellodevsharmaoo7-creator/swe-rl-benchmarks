@@ -1,0 +1,16 @@
+--- a/tasks/task_01_async_deadlock/buggy_code.py
++++ b/tasks/task_01_async_deadlock/buggy_code.py
+@@ -10,10 +10,8 @@ class AsyncQueueWorker:
+     async def consume(self):
+         while not self.queue.empty():
+-            await self.lock.acquire()
+-            item = await self.queue.get()
+-            if item == "CORRUPTED":
+-                raise ValueError("Corrupted payload")
+-            self.processed_count += 1
+-            self.lock.release()
++            async with self.lock:
++                item = await self.queue.get()
++                if item != "CORRUPTED":
++                    self.processed_count += 1
++                self.queue.task_done()
